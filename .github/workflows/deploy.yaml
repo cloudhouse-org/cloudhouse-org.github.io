@@ -1,0 +1,51 @@
+name: Deploy with GitHub App Long-term Token
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production  # 使用环境保护
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: 'latest'
+          extended: true
+
+      - name: Build site
+        run: hugo --minify --baseURL "https://cloudhouse-org.github.io/"
+
+      - name: Generate App Token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Deploy to Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          # 使用App生成的令牌（自动续期）
+          app_token: ${{ steps.generate_token.outputs.token }}
+          publish_branch: main
+          external_repository: cloudhouse-org/cloudhouse-org.github.io
+          publish_dir: ./public
+          keep_files: false
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
