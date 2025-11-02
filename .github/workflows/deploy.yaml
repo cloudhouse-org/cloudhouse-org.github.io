@@ -2,9 +2,9 @@ name: Deploy with GitHub App Long-term Token
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
-    branches: [main]
+    branches: [master]
 
 permissions:
   contents: read
@@ -43,7 +43,7 @@ jobs:
         with:
           # 使用App生成的令牌（自动续期）
           app_token: ${{ steps.generate_token.outputs.token }}
-          publish_branch: main
+          publish_branch: master
           external_repository: cloudhouse-org/cloudhouse-org.github.io
           publish_dir: ./public
           keep_files: false
