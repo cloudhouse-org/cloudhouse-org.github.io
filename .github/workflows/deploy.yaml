@@ -1,19 +1,19 @@
-name: Deploy with GitHub App Long-term Token
+name: Deploy Hugo Site
 
 on:
   push:
     branches: [master]
-  pull_request:
-    branches: [master]
+  workflow_dispatch:
 
 permissions:
   contents: read
+  pages: write
   id-token: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production  # 使用环境保护
+    environment: production
     
     steps:
       - name: Checkout code
@@ -31,17 +31,11 @@ jobs:
       - name: Build site
         run: hugo --minify --baseURL "https://cloudhouse-org.github.io/"
 
-      - name: Generate App Token
-        id: generate_token
-        uses: tibdex/github-app-token@v1
-        with:
-          app_id: ${{ secrets.APP_ID }}
-          private_key: ${{ secrets.APP_PRIVATE_KEY }}
-
       - name: Deploy to Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          deploy_key: ${{ secrets.DEPLOY_KEY }}
+          
           publish_branch: master
           external_repository: cloudhouse-org/cloudhouse-org.github.io
           publish_dir: ./public
