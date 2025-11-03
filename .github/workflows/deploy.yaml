@@ -19,7 +19,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: false
           fetch-depth: 0
 
       - name: Setup Hugo
@@ -27,6 +27,11 @@ jobs:
         with:
           hugo-version: 'latest'
           extended: true
+
+      - name: Download Hugo Modules and Tidy
+        run: |
+          hugo mod tidy
+          hugo mod get
 
       - name: Build site
         run: hugo --minify --baseURL "https://cloudhouse-org.github.io/"

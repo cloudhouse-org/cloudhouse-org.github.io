@@ -1,4 +1,9 @@
-baseURL = 'https://example.org/'
-languageCode = 'en-us'
-title = 'My New Hugo Site'
-theme = "papermod"
+# hugo.toml
+baseURL = 'https://cloudhouse-org.github.io/'
+languageCode = 'zh-cn'
+title = 'CloudHouse Blog'
+
+[module]
+  [[module.imports]]
+    path = 'github.com/adityatelange/hugo-PaperMod'
+    disable = false
