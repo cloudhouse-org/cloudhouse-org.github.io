@@ -2,7 +2,7 @@ name: Deploy Hugo Site
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   workflow_dispatch:
 
 permissions:
@@ -41,7 +41,7 @@ jobs:
         with:
           deploy_key: ${{ secrets.DEPLOY_KEY }}
           
-          publish_branch: master
+          publish_branch: main
           external_repository: cloudhouse-org/cloudhouse-org.github.io
           publish_dir: ./public
           keep_files: false
