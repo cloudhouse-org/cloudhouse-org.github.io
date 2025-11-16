@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Linux 环境下的 CH32 &#43; LibXR 开发环境搭建 | CloudHouse Blog</title>
+<meta name="keywords" content="CH32, 嵌入式, CMake, XRobot">
+<meta name="description" content="笔者最近在研究国产单片机。大家对国产单片机的固有印象可能还停留在一比一复刻 STM32，但是随着国产单片机产业的蓬勃发展，各个国产单片机也在自己的产品中做出了自己的特色，其中沁恒家的 RISC-V 系列单片机我最近比较感兴趣（因为沁恒真的敢送）。
+说到沁恒，相信大家对他们家 CH340 这款经典的 USB 转串口芯片并不陌生。而在单片机领域，沁恒同样展现出强大的技术实力，尤其在USB功能方面独树一帜：既有经济实用、集成 USB2.0 接口的 V203 系列，也有搭载高速 480MHz USB PHY 的 V307 系列，为嵌入式开发者提供了丰富的选择。
+LibXR 是一个功能强大的跨平台 C&#43;&#43; 开发框架，集成了丰富的外设驱动、数据结构、通信中间件、操作系统封装和数学工具库。它为 CH32 系列单片机提供了一个兼容层，不仅对 CH32 标准库进行了高层次的抽象封装，还修复了原库中的一些已知问题，大大提升了开发效率和代码质量。
+本文将详细介绍如何在Linux环境下搭建基于 CH32 单片机和 LibXR 库的完整开发环境，帮助开发者快速上手这一优秀的开发组合。
+环境准备
+1. 获取项目模板
+LibXR 官方提供了现成的项目模板，支持 CH32V307 和 CH32V203 两种型号，已预配置好构建脚本和调试配置，无需手动设置。
+# 克隆对应芯片的模板项目
+git clone https://github.com/xrobot-org/CH32V307_LibXR_Template.git
+# 或者选择 CH32V203 模板
+# git clone https://github.com/xrobot-org/CH32V203_LibXR_Template.git
+
+# 初始化 LibXR 子模块
+git submodule add https://github.com/Jiu-xiao/libxr
+2. 安装调试工具链
+CH32 芯片需要专用的调试工具。从MounRiver 官网下载 Linux 版工具链：">
+<meta name="author" content="molqzone">
+<link rel="canonical" href="http://localhost:1313/post/ch32-libxr-linux-env/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.343cc480b9ffc8f04ccbe5e968ad674880cab773ec19905e93033065c1e7a804.css" integrity="sha256-NDzEgLn/yPBMy&#43;XpaK1nSIDKt3PsGZBekwMwZcHnqAQ=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/post/ch32-libxr-linux-env/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="CloudHouse Blog (Alt + H)">CloudHouse Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Linux 环境下的 CH32 &#43; LibXR 开发环境搭建
+    </h1>
+    <div class="post-meta"><span title='2025-11-16 12:00:00 +0800 CST'>November 16, 2025</span>&nbsp;·&nbsp;<span>molqzone</span>
+
+</div>
+  </header> 
+  <div class="post-content"><p>笔者最近在研究国产单片机。大家对国产单片机的固有印象可能还停留在一比一复刻 STM32，但是随着国产单片机产业的蓬勃发展，各个国产单片机也在自己的产品中做出了自己的特色，其中沁恒家的 RISC-V 系列单片机我最近比较感兴趣（因为沁恒真的敢送）。</p>
+<p>说到沁恒，相信大家对他们家 CH340 这款经典的 USB 转串口芯片并不陌生。而在单片机领域，沁恒同样展现出强大的技术实力，尤其在USB功能方面独树一帜：既有经济实用、集成 USB2.0 接口的 V203 系列，也有搭载高速 480MHz USB PHY 的 V307 系列，为嵌入式开发者提供了丰富的选择。</p>
+<p>LibXR 是一个功能强大的跨平台 C++ 开发框架，集成了丰富的外设驱动、数据结构、通信中间件、操作系统封装和数学工具库。它为 CH32 系列单片机提供了一个兼容层，不仅对 CH32 标准库进行了高层次的抽象封装，还修复了原库中的一些已知问题，大大提升了开发效率和代码质量。</p>
+<p>本文将详细介绍如何在Linux环境下搭建基于 CH32 单片机和 LibXR 库的完整开发环境，帮助开发者快速上手这一优秀的开发组合。</p>
+<h2 id="环境准备">环境准备<a hidden class="anchor" aria-hidden="true" href="#环境准备">#</a></h2>
+<h3 id="1-获取项目模板">1. 获取项目模板<a hidden class="anchor" aria-hidden="true" href="#1-获取项目模板">#</a></h3>
+<p>LibXR 官方提供了现成的项目模板，支持 CH32V307 和 CH32V203 两种型号，已预配置好构建脚本和调试配置，无需手动设置。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 克隆对应芯片的模板项目</span>
+</span></span><span style="display:flex;"><span>git clone https://github.com/xrobot-org/CH32V307_LibXR_Template.git
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 或者选择 CH32V203 模板</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># git clone https://github.com/xrobot-org/CH32V203_LibXR_Template.git</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 初始化 LibXR 子模块</span>
+</span></span><span style="display:flex;"><span>git submodule add https://github.com/Jiu-xiao/libxr
+</span></span></code></pre></div><h3 id="2-安装调试工具链">2. 安装调试工具链<a hidden class="anchor" aria-hidden="true" href="#2-安装调试工具链">#</a></h3>
+<p>CH32 芯片需要专用的调试工具。从<a href="https://www.mounriver.com/download">MounRiver 官网</a>下载 Linux 版工具链：</p>
+<ol>
+<li>访问下载页面，选择 Linux 平台</li>
+<li>在&quot;工具链和调试器&quot;栏目下载 <strong>MRS_Toolchain_Linux_x64_Vxxx.tar.xz</strong></li>
+<li>解压到合适的目录（建议 <code>~/Development/</code> 目录下）</li>
+</ol>
+<p><img alt="MRS 工具链下载" loading="lazy" src="/post/ch32-libxr-linux-env/mrs-install.png"></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 创建开发目录并解压工具链</span>
+</span></span><span style="display:flex;"><span>mkdir -p ~/Development/
+</span></span><span style="display:flex;"><span>cd ~/Development/
+</span></span><span style="display:flex;"><span>tar -xf MRS_Toolchain_Linux_x64_Vxxx.tar.xz  <span style="color:#75715e"># 根据实际文件名调整</span>
+</span></span></code></pre></div><p><strong>工具链说明：</strong></p>
+<ul>
+<li><strong>专用 OpenOCD</strong>：用于 CH32 芯片烧录和调试（开源版本无法支持 CH32）</li>
+<li><strong>RISC-V Embedded GCC</strong>：沁恒提供的编译器，支持 WCH 扩展指令集，但对 C++ 标准支持不完整（<em>LibXR 官方不推荐此编译器</em>）</li>
+</ul>
+<h3 id="3-编译推荐编译器">3. 编译推荐编译器<a hidden class="anchor" aria-hidden="true" href="#3-编译推荐编译器">#</a></h3>
+<p>LibXR 推荐使用上游 RISC-V 工具链，具有完整的 C++ 标准支持，可以正常使用 Eigen 等现代 C++ 库。</p>
+<h4 id="31-获取源码">3.1 获取源码<a hidden class="anchor" aria-hidden="true" href="#31-获取源码">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git clone https://github.com/riscv-collab/riscv-gnu-toolchain.git
+</span></span><span style="display:flex;"><span>cd riscv-gnu-toolchain
+</span></span></code></pre></div><h4 id="32-配置编译选项">3.2 配置编译选项<a hidden class="anchor" aria-hidden="true" href="#32-配置编译选项">#</a></h4>
+<p>针对 CH32 芯片特性进行配置：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>./configure --prefix<span style="color:#f92672">=</span>~/Development/riscv-ch32 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>            --with-arch<span style="color:#f92672">=</span>rv32imacf_zicsr_zifencei <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>            --with-abi<span style="color:#f92672">=</span>ilp32f
+</span></span></code></pre></div><p><strong>配置说明：</strong></p>
+<ul>
+<li><code>--prefix</code>：指定安装目录</li>
+<li><code>--with-arch</code>：目标架构，兼容 CH32 指令集（不包含 WCH 私有扩展）</li>
+<li><code>--with-abi</code>：应用程序二进制接口，支持单精度浮点</li>
+</ul>
+<h4 id="33-开始编译">3.3 开始编译<a hidden class="anchor" aria-hidden="true" href="#33-开始编译">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>make -j<span style="color:#66d9ef">$(</span>nproc<span style="color:#66d9ef">)</span>  <span style="color:#75715e"># 使用多核编译加速</span>
+</span></span></code></pre></div><p>编译完成后，工具链将安装到 <code>~/Development/riscv-ch32/</code> 目录。</p>
+<h2 id="vscode-开发环境配置">VSCode 开发环境配置<a hidden class="anchor" aria-hidden="true" href="#vscode-开发环境配置">#</a></h2>
+<h3 id="1-安装必要插件">1. 安装必要插件<a hidden class="anchor" aria-hidden="true" href="#1-安装必要插件">#</a></h3>
+<p>在 VSCode 中安装以下插件：</p>
+<ul>
+<li><strong>C/C++</strong>：代码智能提示和语法高亮（注意：clangd 对 RISC-V 支持有限）</li>
+<li><strong>CMake Tools</strong>：CMake 项目管理和构建</li>
+<li><strong>Cortex Debug</strong>：OpenOCD 调试支持</li>
+</ul>
+<h3 id="2-配置编译器">2. 配置编译器<a hidden class="anchor" aria-hidden="true" href="#2-配置编译器">#</a></h3>
+<ol>
+<li>使用快捷键 <code>Ctrl + Shift + P</code></li>
+<li>搜索并选择 <code>CMake: Configure</code></li>
+<li>在编译器列表中选择刚刚编译的 RISC-V 工具链：<code>/home/keruth/Development/riscv-ch32/bin/riscv32-unknown-elf-gcc</code></li>
+</ol>
+<h3 id="3-配置调试器">3. 配置调试器<a hidden class="anchor" aria-hidden="true" href="#3-配置调试器">#</a></h3>
+<ol>
+<li>打开设置界面（<code>Ctrl + ,</code>）</li>
+<li>切换到 <code>Workspace</code> 选项卡</li>
+<li>导航至 <code>Extensions</code> → <code>Cortex Debug</code> → <code>External GDB Servers</code></li>
+<li>找到 <code>Cortex-debug: Openocd Path</code> 配置项</li>
+<li>点击 <code>Edit in settings.json</code>，添加以下配置：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;cortex-debug.openocdPath&#34;</span>: <span style="color:#e6db74">&#34;/home/keruth/Development/mrs-toolchain/OpenOCD/OpenOCD/bin/openocd&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="验证开发环境">验证开发环境<a hidden class="anchor" aria-hidden="true" href="#验证开发环境">#</a></h2>
+<h3 id="1-编译测试">1. 编译测试<a hidden class="anchor" aria-hidden="true" href="#1-编译测试">#</a></h3>
+<p>在 VSCode 中：</p>
+<ol>
+<li>打开命令面板（<code>Ctrl + Shift + P</code>）</li>
+<li>选择 <code>CMake: Build</code> 或点击状态栏的构建按钮</li>
+<li>确认编译过程无错误完成</li>
+</ol>
+<h3 id="2-调试测试">2. 调试测试<a hidden class="anchor" aria-hidden="true" href="#2-调试测试">#</a></h3>
+<ol>
+<li>使用 WCHLinkE 连接 CH32 开发板到电脑</li>
+<li>打开调试界面（<code>Ctrl + Shift + D</code>）</li>
+<li>选择模板项目预设的调试配置</li>
+<li>点击运行按钮，确认能够正常烧录和调试</li>
+</ol>
+<p>如果编译和调试都能正常工作，说明开发环境已经搭建完成，可以开始你的 CH32 + LibXR 开发之旅了！</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:1313/tags/ch32/">CH32</a></li>
+      <li><a href="http://localhost:1313/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a></li>
+      <li><a href="http://localhost:1313/tags/cmake/">CMake</a></li>
+      <li><a href="http://localhost:1313/tags/xrobot/">XRobot</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://localhost:1313/">CloudHouse Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>
