@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>模拟电路 on CloudHouse Blog</title>
+    <link>http://localhost:1313/tags/%E6%A8%A1%E6%8B%9F%E7%94%B5%E8%B7%AF/</link>
+    <description>Recent content in 模拟电路 on CloudHouse Blog</description>
+    <generator>Hugo -- 0.152.2</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Wed, 08 Oct 2025 16:00:00 +0800</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/%E6%A8%A1%E6%8B%9F%E7%94%B5%E8%B7%AF/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>高速信号走线打过孔换层，会有多大影响</title>
+      <link>http://localhost:1313/post/high-speed-signal-via-layer-transition/</link>
+      <pubDate>Wed, 08 Oct 2025 16:00:00 +0800</pubDate>
+      <guid>http://localhost:1313/post/high-speed-signal-via-layer-transition/</guid>
+      <description>&lt;h2 id=&#34;引言&#34;&gt;引言&lt;/h2&gt;
+&lt;p&gt;在一些高速信号板，例如 FPGA、ARM 处理器板，少不了 BGA 封装的走线绘制。这种封装走线又多又杂，在实际应用中经常会用到打过孔换层的走线方法，来在有限的空间中把线走通。但是这种走线会不会对信号产生影响呢？下面我们用 HFSS 和 ADS 仿真软件进行探究。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;高速信号走线示意图&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/high-speed-signal-via-layer-transition/high-speed-signal-routing.jpeg&#34;&gt;&lt;/p&gt;
+&lt;p&gt;使用嘉立创阻抗神器计算，可获得的常用的 50Ohm 阻抗四层板叠层结构图，我们先仿照该结构图在 HFSS 中建立类似结构：&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;四层板叠层结构&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/high-speed-signal-via-layer-transition/four-layer-stackup.jpeg&#34;&gt;&lt;/p&gt;
+&lt;p&gt;测试模型是否建立成功，先建立如图微带线模型，并进行 S 参数仿真测试：&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;微带线模型&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/high-speed-signal-via-layer-transition/microstrip-model.png&#34;&gt;
+&lt;img alt=&#34;微带线仿真结果&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/high-speed-signal-via-layer-transition/microstrip-simulation.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;分析 S11 参数，可得微带线归一化阻抗在中心点左右，即在 50ohm 处。&lt;/p&gt;
+&lt;p&gt;下面来建立类似 BGA 封装条件的传输模型&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;BGA 传输模型&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/high-speed-signal-via-layer-transition/bga-transmission-model.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;上图中，类 BGA 的传输模型，在发射与接收端各有两个触点。信号在表层进行传输，通过过孔在地平面进行回流，传输长度约为 3 到 4cm。下面是测得的 S11 参数，可以发现，因为有过孔作用，在高频处 S11 参数并不是稳定的 50Ohm。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;BGA 模型 S11 参数&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/high-speed-signal-via-layer-transition/bga-s11-parameters.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;将仿真参数导出到 ADS 软件进行时域仿真。仿真使用 500Mhz，1Vpp 的方波信号进行传输，可以看到波形还是很完整的。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;ADS 时域仿真结果&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/high-speed-signal-via-layer-transition/ads-time-domain-simulation.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;下面我们来换一个模型，加入过孔换层操作，进行仿真&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;过孔换层模型&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/high-speed-signal-via-layer-transition/via-layer-transition-model.png&#34;&gt;
+&lt;img alt=&#34;换层模型 S 参数&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/high-speed-signal-via-layer-transition/via-transition-s-parameters.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;可以看到 S11 参数比较杂乱，跟上面比起来差别非常大。&lt;/p&gt;
+&lt;p&gt;下面仍然使用 ADS 进行时域仿真&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;换层模型时域仿真&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/high-speed-signal-via-layer-transition/via-transition-time-domain.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;可以看到，除了波形抖动幅度略微增大，眼图几乎没有什么变化。这里大胆猜测一下，在短距离传输下，就算是在线路中有过孔这种阻抗不连续的现象，只要及时在附近给电流提供完整的回流路径，对波形几乎没什么影响。&lt;/p&gt;
+&lt;h2 id=&#34;总结&#34;&gt;总结&lt;/h2&gt;
+&lt;p&gt;在 3 到 4cm 这种长度的布线中，存在过孔换层对信号质量影响不大。在实际应用中只需及时给换层提供回流路径，且回流过孔尽量靠近换层过孔即可。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>DCDC 开关节点振铃大解密</title>
+      <link>http://localhost:1313/post/dcdc-switching-node-ringing-analysis/</link>
+      <pubDate>Sat, 23 Aug 2025 14:00:00 +0800</pubDate>
+      <guid>http://localhost:1313/post/dcdc-switching-node-ringing-analysis/</guid>
+      <description>&lt;h2 id=&#34;前言开关节点振铃&#34;&gt;前言——开关节点振铃&lt;/h2&gt;
+&lt;p&gt;为什么电源板子总炸？新焊好的电源，刚开始一段时间正常，但是用多一会，MOS 管就星火漫天，炸管不断。导致这个现象的部分原因，是这篇文章将要讲解的内容——开关节点振铃。DCDC 中，存在一个电流节点，开关过程中，这个节点存在大电流的电流换向，导致了电压过冲等现象的发生，容易烧坏器件。想要规避这类现象的发生，我们需要了解它的产生原理，发生场景等，再去想方设法地去解决。本文用 LTspice 仿真软件，详细探究振铃背后的秘密。&lt;/p&gt;
+&lt;h2 id=&#34;1-开关节点振铃是什么&#34;&gt;1 开关节点振铃是什么&lt;/h2&gt;
+&lt;p&gt;下图是 BUCK（降压）电路的基本拓补，如红圈所示位置是开关节点。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;开关节点和节点电流示意图&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/dcdc-switching-node-ringing-analysis/buck-switching-node-diagram.jpeg&#34;&gt;&lt;/p&gt;
+&lt;p&gt;在 DCDC 工作过程中，开关 S1 由 PWM 控制器控制，一开一关。电路有两种工作状态：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;S1 闭合，电流 I1 流进节点，I2 为 0&lt;/li&gt;
+&lt;li&gt;S1 开路，电流 I2 流进节点，I1 为 0&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;观察下面仿真波形图，理想状态下，I1 和 I2 应只有一条支路有电流，此时开关节点电压也为规整的方波。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;上图为 I2，下图为 I1&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/dcdc-switching-node-ringing-analysis/current-waveforms.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;开关节点电压示意图&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/dcdc-switching-node-ringing-analysis/ideal-switching-node-voltage.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;但是正常来说，实际上我们制作出来的 DCDC，开关节点电压并不会这么规整，下图所示是振铃的仿真图形。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;开关节点振铃&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/dcdc-switching-node-ringing-analysis/switching-node-ringing-waveform.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;开关节点振铃（上升沿细节图）&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/dcdc-switching-node-ringing-analysis/switching-node-rising-detail.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;由上图，能看出，在开关电源的上升沿处出现了一个很高电压的尖峰，放大上升沿部分，可以发现上升沿出现了一个逐步衰减的高频震荡。相较于理想方波，这种现象对器件来说非常不友好，如果不加以控制，可能会导致 MOS 管或者二极管击穿烧毁的现象，影响电源的稳定性。&lt;/p&gt;
+&lt;p&gt;开关节点的振铃现象可以分为上冲和下冲，如上图所示是上冲现象，下冲现象也将在下文详细分析。&lt;/p&gt;
+&lt;h2 id=&#34;2-震荡如何产生&#34;&gt;2 震荡如何产生&lt;/h2&gt;
+&lt;p&gt;在电路里面，只要是震荡，基本都和 LC 回路有关，实际应用中震荡产生的原因基本都是由于电路布线布局瑕疵而产生的杂散电容电感引起。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;LC 震荡电路示意图&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/dcdc-switching-node-ringing-analysis/lc-resonant-circuit.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;如图所示 LC 震荡回路，当在电压源给予 LC 电路高频脉冲时，电路便会引发震荡，震荡的频率取决于 LC 回路的特征频率。&lt;/p&gt;
+&lt;p&gt;$$f=\frac{1}{2 \pi \sqrt{LC}}$$&lt;/p&gt;
+&lt;p&gt;DCDC 中，连续快速开关，开关的上升沿和下降沿相当于给整个电路一个高频激励，引发 LC 谐振回路震荡。接下来，要解析震荡产生的原因，只需在 BUCK 电路中找出存在 LC 杂散的回路即可。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>千里之行，始于足下，学电子从 0 到 1</title>
+      <link>http://localhost:1313/post/journey-begins-with-single-step/</link>
+      <pubDate>Wed, 20 Aug 2025 12:00:00 +0800</pubDate>
+      <guid>http://localhost:1313/post/journey-begins-with-single-step/</guid>
+      <description>&lt;h2 id=&#34;1-写在前面hello-world&#34;&gt;1 写在前面——Hello World&lt;/h2&gt;
+&lt;p&gt;这是一个个人公众号，该篇文章是建号的第一篇文章。建立这个公众号旨在分享一些电子设计相关的内容，同时记录一下博主自身的学习经历（本人记忆力不好，写下来或许过一段时间还能看起来回忆一下）。这第一篇文章，主要内容是想记录一下自己这半年来的学习经历，记录一下博主从一个电子设计新手，后面通过学习，逐渐入门，到现在终于可以独立设计一些小项目的过程，感悟与体会。本文不会过多涉及技术难点的讲解，仅仅作为学习过程、想法的记录，同时也希望有需要的同学看到这篇文章，可以对电子设计入门有一个初步的理解。&lt;/p&gt;
+&lt;h2 id=&#34;2-我的第一个项目升压电源&#34;&gt;2 我的第一个项目——升压电源&lt;/h2&gt;
+&lt;p&gt;其实大家在网上查找，很多文章或者一些人都会建议：小白入门电源第一个项目最好都是自己去设计一个 BUCK（降压）电路。其实这也是我刚开始的想法，我确实准备去实现一个比较正统的 BUCK 电路，但是后面误打误撞，去加入了一支智能车的队伍，因为需要就直接跳过了 BUCK，去做了一个 BOOST（升压）电源。虽然有点走了歪门邪道，但是不妨碍博主从中学习到了很多东西。接下来讲讲我做这个电源项目做的一些准备跟实践吧。&lt;/p&gt;
+&lt;p&gt;我认为学习电源理论是很重要的，懂得如何选取元件，计算元件参数，等到后面做出实物，测试的时候也需要用理论去解释测试得到的现象（正常或异常现象），才能真正地反哺到你的知识里，给你带来提升。我自己的学习路线是，先把模电、数电基础给学了，再去深入学习开关电源的理论知识，然后可以去尝试用软件搭建仿真模型，验证自己的思路是否正确，再去真正的制作实物。制作完实物之后，无论是否正常工作，测试工作都是非常必要的，最好使用示波器去测量不同节点的波形，看看跟自己的理论知识是否有出入，一般来说，新手的第一版电源波形都会有各种各样的奇怪的现象。当然，问题存在的时候也是你该进步的时候了，不要惧怕问题，去思考如何解释并解决这个现象，才能更好地学到东西。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;海绵宝宝的傅里叶变换是派大星&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/journey-begins-with-single-step/spongebob-fourier-transform.jpeg&#34;&gt;&lt;/p&gt;
+&lt;p&gt;电源基础拓补大致分为三种类型：BUCK（降压），BOOST（升压），BUCK-BOOST（升降压）。其中 BUCK（降压）最为简单，因为无论是从元件理论值计算、选取，还是稳定性分析建模、或是电路复杂度来说，它都简单，所以很适合入门。但是学会了 buck 之后，其他两个原理也是大致相通，入门可以通过这三个拓补进行学习。为了系统学习电源知识，当时我去找了很多资料，有网课、博客、书籍等，它们各有利弊，网课跟博客我个人感觉比较零散，特别是博客比较适合有一定基础的人去学习，不然很难系统掌握电源设计的相关知识。我个人觉得还是书籍资料比较适合我，能够支撑起电源理论知识的系统学习，《精通开关电源设计》这本经典教材我极力推荐。我在开始我的项目之前我看了这本书一个月左右，把一些比较重要的章节看了，里面很详细讲了伏秒定律、元件选取、稳定性分析等内容。对于入门来说，细看里面重要的章节已经很足够了。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;BUCK拓补电路&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/journey-begins-with-single-step/buck-circuit-topology.jpeg&#34;&gt;&lt;/p&gt;
+&lt;p&gt;开关电源无非就是一个能量的转换器，电能从输入端流动到输出端，一定程度上电能保持不变（假设转换器损耗的能量很小），变化的只是他们的形式，即是电源的电压与电流。关于开关电源的原理网上很多资料都有细讲，这里不多赘述。开关电源的比较重要的点，一是元件选取，包括 MOS 管、输入输出电容、电感、MOS 管输入电阻阻值等，这些可能还会根据实物的工作状态去调整；二是 PCB 的 Layout（布局），要考虑到功率元件的散热以及环路最小化问题，良好的散热可以提高功率元件的功率上限，环路设计好了可以大大提高电源工作的稳定性（不那么容易炸板），入门电源设计可以重点学习这两个内容。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;BUCK电流环路分析&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/journey-begins-with-single-step/buck-current-loop-analysis.jpeg&#34;&gt;&lt;/p&gt;
+&lt;p&gt;我做的第一个电源项目改了四版，第一次出的问题最大，当时不懂得给 MOS 管散热的重要性，只参考了数据手册里面的电流极限值，在成品制作出来之后，理论计算 10A 的电流才跑不到 3A 就炸了。后面经过了解，MOS 管数据手册都是在保持 MOS 管在 25 度的情况下测得的电流极限值，但是在实际使用中 MOS 管散热没做好是会升温直接炸的，根本跑不到极限值，第一次电源实验就以失败告终了。后面换了一下 MOS 管的封装，改成了更好散热的封装，电源就正常了很多，极限电流也上去了，但是还是会有很多小问题，当时电源在带载的时候是正常的，但是空载情况下，电源发生了啸叫，这就很不正常了。后面发现电源在空载情况下因为布局不佳的问题，电源电路有轻微的震荡，导致了啸叫的产生。后面两版都是优化了布局布线，电路可以在接近理论值良好工作。经过最后测试这个 6V 转 12V 升压电路可以在极限负载 10A（120W）输出情况下正常持续工作 3min（对当时智能车的应用来说足够了）。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;第一版MOS管炸管&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/journey-begins-with-single-step/first-version-mosfet-burnout.jpeg&#34;&gt;
+&lt;img alt=&#34;第四版MOS管炸管&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/journey-begins-with-single-step/fourth-version-mosfet-burnout.jpeg&#34;&gt;&lt;/p&gt;
+&lt;p&gt;这里再提一下测试很重要！测试很重要！测试很重要！一定要熟练掌握示波器、万用表等仪器的使用方法。&lt;/p&gt;
+&lt;p&gt;当时做这个项目时间比较紧，说实话是翘了不少课来做的（当然不推荐）。即使在比较有压力的情况下也做了大概一个多月时间，当时我真的感觉电路怎么那么玄学。但后面慢慢研究，其实那些玄学的背后都是一个又一个的知识，那些谜团的背后都是自身技术提升的契机，只要有探索的欲望和耐心，去攻克这些难关，一定能有不少的收获。我感觉这是作为电子设计学习的基础了，一定要有解决问题的耐心，电子的学习是不能急于求成的。&lt;/p&gt;
+&lt;h2 id=&#34;3-后来的学习&#34;&gt;3 后来的学习&lt;/h2&gt;
+&lt;p&gt;第一个电源项目是成功把我领进了电子设计的大门，一些基础的，也属实是把之前学过的模电、数电、信号与系统这些都给用上了，做完这个项目之后，有一种加了一堆调味料终于成品菜出锅的感觉，说实话很爽。后面一些简单的驱动电路、单片机最小系统板其实都是水到渠成，也没有特别难的点。万事开头难，只要入了这个门，其实发现电子设计也没有想象中的难。&lt;/p&gt;
+&lt;p&gt;其实我 4 到 6 月份弄得智能车项目其实是寄掉了。连校赛也没能出去，但是当时也没感到多遗憾，毕竟感觉自己在这里面也收获到了自己想要的东西，它确确实实把我领进了电子设计的大门。&lt;/p&gt;
+&lt;p&gt;后面做过的小作品其实也有挺多，智能车那块还有一个超级电容无线充电，最终成品功率不高但是散热布局做的还算到位，如果有时间改改参数或许还能往上提个一两百 W。还有后面的电赛开始尝试一些尝试一些高频的电路设计（其实也就 100MHz 以下，一般现在来说叫中频了），大部分电路器件都是成品芯片，其实也没太多技术性可言，我当时感觉唯一比较有难度的是，尝试去给高速运算放大器做频率补偿，提高运放电路稳定性或者去达到运放标定的最大带宽。后面的学习比起第一次设计电路还是要轻松太多了。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;自制板&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/journey-begins-with-single-step/diy-pcb-board.jpeg&#34;&gt;
+&lt;img alt=&#34;电赛作品&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/journey-begins-with-single-step/electronic-design-contest-project.jpeg&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;4-我的一些想法&#34;&gt;4 我的一些想法&lt;/h2&gt;
+&lt;p&gt;其实电子设计相关的学习还是很好玩的，很有意思。这是一个能把想法真正实现到成品的一项技能。我大一加入学校科创团队，到现在，我感觉我是走了一条自己喜欢的道路。&lt;/p&gt;
+&lt;p&gt;网上有很多说法，叫&amp;quot;板级硬件已死&amp;quot;，我现在其实也不知道真实情况是不是这样。因为板级硬件（就是 PCB 电路板上能画的）很多都已经被集成芯片取代，集成芯片价格更低，性能更好，留给板级硬件师发挥的空间并不多，我打电赛期间也是这么感觉的。不过应该也是是我自身水平实力不够，现在还没有办法触碰到一些更高难度的板级硬件技术，所有现在才会有这种感觉。在网上查阅，很多网友推荐了一些比较有前景或技术含量的方向，例如大功率电子电力方向，板级射频、天线或者系统工程师（其实我也不是很知道系统工程师是什么意思）。他们意思就是，功率做大、频率做高、电路做复杂的意思。它们在网上很多文章都有分析，况且我自己理解也不深，也就不多说了。这里只说我自身的情况。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
