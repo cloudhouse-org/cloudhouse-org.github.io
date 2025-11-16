@@ -6,6 +6,13 @@ title = 'CloudHouse Blog'
 [params]
   author = "molqzone"
 
+  [params.math]
+    enable = true
+
+  # Custom head for MathJax
+  [params.customJS]
+    mathJax = true
+
 [taxonomies]
   tag = "tags"
   category = "categories"

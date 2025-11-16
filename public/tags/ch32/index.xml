@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>CH32 on CloudHouse Blog</title>
+    <link>http://localhost:1313/tags/ch32/</link>
+    <description>Recent content in CH32 on CloudHouse Blog</description>
+    <generator>Hugo -- 0.152.2</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 16 Nov 2025 12:00:00 +0800</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/ch32/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Linux 环境下的 CH32 &#43; LibXR 开发环境搭建</title>
+      <link>http://localhost:1313/post/ch32-libxr-linux-env/</link>
+      <pubDate>Sun, 16 Nov 2025 12:00:00 +0800</pubDate>
+      <guid>http://localhost:1313/post/ch32-libxr-linux-env/</guid>
+      <description>&lt;p&gt;笔者最近在研究国产单片机。大家对国产单片机的固有印象可能还停留在一比一复刻 STM32，但是随着国产单片机产业的蓬勃发展，各个国产单片机也在自己的产品中做出了自己的特色，其中沁恒家的 RISC-V 系列单片机我最近比较感兴趣（因为沁恒真的敢送）。&lt;/p&gt;
+&lt;p&gt;说到沁恒，相信大家对他们家 CH340 这款经典的 USB 转串口芯片并不陌生。而在单片机领域，沁恒同样展现出强大的技术实力，尤其在USB功能方面独树一帜：既有经济实用、集成 USB2.0 接口的 V203 系列，也有搭载高速 480MHz USB PHY 的 V307 系列，为嵌入式开发者提供了丰富的选择。&lt;/p&gt;
+&lt;p&gt;LibXR 是一个功能强大的跨平台 C++ 开发框架，集成了丰富的外设驱动、数据结构、通信中间件、操作系统封装和数学工具库。它为 CH32 系列单片机提供了一个兼容层，不仅对 CH32 标准库进行了高层次的抽象封装，还修复了原库中的一些已知问题，大大提升了开发效率和代码质量。&lt;/p&gt;
+&lt;p&gt;本文将详细介绍如何在Linux环境下搭建基于 CH32 单片机和 LibXR 库的完整开发环境，帮助开发者快速上手这一优秀的开发组合。&lt;/p&gt;
+&lt;h2 id=&#34;环境准备&#34;&gt;环境准备&lt;/h2&gt;
+&lt;h3 id=&#34;1-获取项目模板&#34;&gt;1. 获取项目模板&lt;/h3&gt;
+&lt;p&gt;LibXR 官方提供了现成的项目模板，支持 CH32V307 和 CH32V203 两种型号，已预配置好构建脚本和调试配置，无需手动设置。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# 克隆对应芯片的模板项目&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git clone https://github.com/xrobot-org/CH32V307_LibXR_Template.git
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# 或者选择 CH32V203 模板&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# git clone https://github.com/xrobot-org/CH32V203_LibXR_Template.git&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# 初始化 LibXR 子模块&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git submodule add https://github.com/Jiu-xiao/libxr
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;2-安装调试工具链&#34;&gt;2. 安装调试工具链&lt;/h3&gt;
+&lt;p&gt;CH32 芯片需要专用的调试工具。从&lt;a href=&#34;https://www.mounriver.com/download&#34;&gt;MounRiver 官网&lt;/a&gt;下载 Linux 版工具链：&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
