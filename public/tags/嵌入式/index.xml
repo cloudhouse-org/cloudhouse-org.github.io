@@ -1,7 +1,53 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>嵌入式 on CloudHouse Blog</title><link>https://cloudhouse-org.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/</link><description>Recent content in 嵌入式 on CloudHouse Blog</description><generator>Hugo -- 0.152.2</generator><language>zh-cn</language><lastBuildDate>Sun, 20 Jul 2025 01:12:48 +0800</lastBuildDate><atom:link href="https://cloudhouse-org.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/index.xml" rel="self" type="application/rss+xml"/><item><title>手把手教你移植 CMSIS-DSP 到 STM32CubeMX 生成的 CMake 项目</title><link>https://cloudhouse-org.github.io/post/cmake-style-cmsis-dsp-port/</link><pubDate>Sun, 20 Jul 2025 01:12:48 +0800</pubDate><guid>https://cloudhouse-org.github.io/post/cmake-style-cmsis-dsp-port/</guid><description>&lt;p&gt;在使用 STM32 系列单片机进行信号处理的过程中，我们往往会选择 ARM 提供的 CMSIS-DSP 库。CMSIS-DSP库涵盖了嵌入式信号处理的大部分常用算法函数，同时针对 Cortex-M 核心做了手工汇编优化，还提供了统一的接口。目前使用 CMSIS-DSP 库有以下几种方案：&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>嵌入式 on CloudHouse Blog</title>
+    <link>http://localhost:1313/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/</link>
+    <description>Recent content in 嵌入式 on CloudHouse Blog</description>
+    <generator>Hugo -- 0.152.2</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 16 Nov 2025 12:00:00 +0800</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Linux 环境下的 CH32 &#43; LibXR 开发环境搭建</title>
+      <link>http://localhost:1313/post/ch32-libxr-linux-env/</link>
+      <pubDate>Sun, 16 Nov 2025 12:00:00 +0800</pubDate>
+      <guid>http://localhost:1313/post/ch32-libxr-linux-env/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>STM32H7 HAL 库开发中的 DMA 传输失败问题的解决方案</title>
+      <link>http://localhost:1313/post/stm32h7-adc-dma-fix/</link>
+      <pubDate>Tue, 29 Jul 2025 12:00:00 +0800</pubDate>
+      <guid>http://localhost:1313/post/stm32h7-adc-dma-fix/</guid>
+      <description>&lt;h2 id=&#34;引言&#34;&gt;引言&lt;/h2&gt;
+&lt;p&gt;最近我尝试在 STM32H723ZGT6 上使用 STM32CubeMX + CMake + GCC 方案配置 ADC1 的 DMA Circular Mode，发现在我的 STM32CubeMX 的参数配置正确的情况下仍然配置不成功。现象是可以进入 ADC1 对应的 DMA1_Stream0_IRQHandler 中断函数，但是无法进入 HAL_ADC_ConvCpltCallback。经过排查发现系统稳定地在 DMA 中断中报告传输错误（TEIF - Transfer Error Interrupt Flag）。下面是我的错误验证代码：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;DMA1_Stream0_IRQHandler&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/* USER CODE BEGIN DMA1_Stream0_IRQn 0 */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;__HAL_DMA_GET_FLAG&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;hdma_adc1, DMA_FLAG_TEIF0_4)) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#a6e22e&#34;&gt;log_e&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;DMA1 Stream0 transfer error occurred&amp;#34;&lt;/span&gt;); &lt;span style=&#34;color:#75715e&#34;&gt;// 此处报错
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/* USER CODE END DMA1_Stream0_IRQn 0 */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#a6e22e&#34;&gt;HAL_DMA_IRQHandler&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;hdma_adc1);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/* USER CODE BEGIN DMA1_Stream0_IRQn 1 */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/* USER CODE END DMA1_Stream0_IRQn 1 */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;常规的调试手段，如排查 MPU 配置、管理 D-Cache 一致性，乃至验证外设时钟与模拟电源，均无法解决问题。从这个现象可以看出，这个坑并非来自 ADC 或 DMA 外设本身的功能缺陷，而是两者在特定工作模式下，触发了系统级深层次的硬件冲突。幸运的是，最终我在社区的帮助下解决了这一问题。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>手把手教你移植 CMSIS-DSP 到 STM32CubeMX 生成的 CMake 项目</title>
+      <link>http://localhost:1313/post/cmake-style-cmsis-dsp-port/</link>
+      <pubDate>Sun, 20 Jul 2025 01:12:48 +0800</pubDate>
+      <guid>http://localhost:1313/post/cmake-style-cmsis-dsp-port/</guid>
+      <description>&lt;p&gt;在使用 STM32 系列单片机进行信号处理的过程中，我们往往会选择 ARM 提供的 CMSIS-DSP 库。CMSIS-DSP库涵盖了嵌入式信号处理的大部分常用算法函数，同时针对 Cortex-M 核心做了手工汇编优化，还提供了统一的接口。目前使用 CMSIS-DSP 库有以下几种方案：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;Keil 项目 + 封装好的 CMSIS-DSP 库 CMSIS-Pack&lt;/li&gt;
 &lt;li&gt;STM32CubeMX CMake 项目 + Software Components&lt;/li&gt;
 &lt;li&gt;STM32CubeMX CMake 项目 + CMSIS-DSP 源码&lt;/li&gt;
 &lt;/ol&gt;
-&lt;p&gt;其中后两种方案更现代化，可以适配 STM32 for Visual Studio Code、CLion 等现代开发环境。而现在（2025 年 7 月）通过 Software Components 安装的 DSP Library 版本还停留在 v1.4.0，这是 2013 年 1 月发布的 CMSIS-DSP 版本，距今已超过十年。这十年里 ARM 为 CMSIS-DSP 追加了更多Cortex-M 架构的支持，新增了&lt;strong&gt;窗函数&lt;/strong&gt;等功能模块。而第三种方案直接从 GitHub 上抓取源码，版本最新，功能最全面。但是需要一些 CMake 配置，没有第二种方案直接快捷。而这篇文章的使命就是带你将 GitHub 上的 CMSIS-DSP 源码加入到 STM32CubeMX 生成的 CMake 项目中。（下图是第二种方法通过 Software Components 配置 CMSIS-DSP）&lt;/p&gt;</description></item></channel></rss>
+&lt;p&gt;其中后两种方案更现代化，可以适配 STM32 for Visual Studio Code、CLion 等现代开发环境。而现在（2025 年 7 月）通过 Software Components 安装的 DSP Library 版本还停留在 v1.4.0，这是 2013 年 1 月发布的 CMSIS-DSP 版本，距今已超过十年。这十年里 ARM 为 CMSIS-DSP 追加了更多Cortex-M 架构的支持，新增了&lt;strong&gt;窗函数&lt;/strong&gt;等功能模块。而第三种方案直接从 GitHub 上抓取源码，版本最新，功能最全面。但是需要一些 CMake 配置，没有第二种方案直接快捷。而这篇文章的使命就是带你将 GitHub 上的 CMSIS-DSP 源码加入到 STM32CubeMX 生成的 CMake 项目中。（下图是第二种方法通过 Software Components 配置 CMSIS-DSP）&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

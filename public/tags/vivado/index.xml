@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Vivado on CloudHouse Blog</title>
+    <link>http://localhost:1313/tags/vivado/</link>
+    <description>Recent content in Vivado on CloudHouse Blog</description>
+    <generator>Hugo -- 0.152.2</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 07 Aug 2025 22:03:45 +0800</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/vivado/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>利用 Vivado 中的 Clocking Wizard 实现动态调整输出时钟的频率和相位以及相关应用</title>
+      <link>http://localhost:1313/post/vivado-clocking-wizard-dynamic-frequency/</link>
+      <pubDate>Thu, 07 Aug 2025 22:03:45 +0800</pubDate>
+      <guid>http://localhost:1313/post/vivado-clocking-wizard-dynamic-frequency/</guid>
+      <description>&lt;h2 id=&#34;开发背景&#34;&gt;开发背景&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;资源连接&lt;/strong&gt;：&lt;a href=&#34;https://docs.xilinx.com/v/u/en-US/pg065-clk-wiz&#34;&gt;Clocking Wizard v6.0 手册 pg065-clk-wiz&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;物理硬件平台&lt;/strong&gt;：Xilinx Artix-7 FPGA A704&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;开发工具&lt;/strong&gt;：VsCode 编译器，Vivado 综合布局，Modelsim 仿真，Verilog 开发语言&lt;/p&gt;
+&lt;p&gt;博主为了准备电赛，实现其中一个扫频的功能，便利用 Vivado 中现成的 IP 核实现动态调整锁相环输出的频率和相位。过程中发现现有的资料较少遇到不少问题，便以此写一篇文章为记录，也可以供大家参考。有问题的地方劳烦大家指出，也可以进行交流。&lt;/p&gt;
+&lt;h2 id=&#34;开发思路&#34;&gt;开发思路&lt;/h2&gt;
+&lt;p&gt;由于我需要从 88MHz-108MHz，并且以 0.1MHz（100K）的频率进行扫频，再阅读手册 15-19 页其相关寄存器，发现 Clocking Wizard 其中有一个公共寄存器控制所有时钟输出频率和相位后，各自时钟还有相关寄存器自行控制。也就是说输入频率，先经过公共的整数+分数倍频（如倍频 8.125），然后经过整数分频后，最后经过每个时钟各自的分频才会输出。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;注意这里特别提到了倍频和分频是整数还是包含分数，分数部分只能为&amp;quot;125&amp;quot;的倍数，倍频只有唯一一次在公共寄存器，普通时钟自身没有倍频只有整数分频，特别的：第一个时钟有分数分频&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;由于我只需要一路时钟输出，所有我选择了第一个时钟。&lt;/p&gt;
+&lt;p&gt;所有我们为了输出时钟更加的精准，我们需要计算每个频率的相关参数，但是由于硬件描述语言不便于计算相关参数，并且目标频率是有步进的（虽然是一个范围），由此我决定利用 Python 脚本生成相关参数，再作为 COE 文件导入工程，用 ROM 存放直接读取，这样子更加便捷并且时序上更简单。&lt;/p&gt;
+&lt;p&gt;最后利用 Vivado 现有的 Clocking，用 AXI4Lite 协议（握手协议）来读写其内部寄存器，从而达到改变频率和相位的效果。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;（以下截出了部分的寄存器，其它寄存器描述大差不差，英语不好可以翻译一下。）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/post/vivado-clocking-wizard-dynamic-frequency/axi4-clocking-registers.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;这里的 C_BASEADDR 是基准地址，是内部自己控制的，不需要我们控制，我们只需要控制 0x200 这个公共寄存器，由于相位我们单独控制就不需要控制 0x204 了，另外时钟 0 控制频率的寄存器是 0x208，往下翻发现时钟 1 是 0x214，时钟 2 是 0x220……所以我们在写代码的时候可以以时钟 0 的频率寄存器为准，地址可以是 0x208+时钟号×0x00C（就是按 12 递增），同样的道理，相位寄存器也可以这样写。&lt;/p&gt;
+&lt;p&gt;写完寄存器后，要记得写重载寄存器 0x25C，Bit[0]位表示要重新加载，Bit[1]在控制重新加载默认（也就是在 Vivado 的 UI 界面配置的初始化状态），还是加载你动态写入的寄存器。加载完成后，也就是 Locked 拉高，内部会重新将 Bit[0]进行复位成 0。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

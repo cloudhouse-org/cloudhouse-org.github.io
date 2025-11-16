@@ -5,11 +5,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="noindex, nofollow">
-<title>嵌入式 | CloudHouse Blog</title>
+<title>时钟管理 | CloudHouse Blog</title>
 <meta name="keywords" content="">
 <meta name="description" content="">
 <meta name="author" content="molqzone">
-<link rel="canonical" href="http://localhost:1313/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/">
+<link rel="canonical" href="http://localhost:1313/tags/%E6%97%B6%E9%92%9F%E7%AE%A1%E7%90%86/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.343cc480b9ffc8f04ccbe5e968ad674880cab773ec19905e93033065c1e7a804.css" integrity="sha256-NDzEgLn/yPBMy&#43;XpaK1nSIDKt3PsGZBekwMwZcHnqAQ=" rel="preload stylesheet" as="style">
 <link rel="icon" href="http://localhost:1313/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
@@ -18,8 +18,8 @@
 <link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/index.xml" title="rss">
-<link rel="alternate" hreflang="en" href="http://localhost:1313/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/">
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/tags/%E6%97%B6%E9%92%9F%E7%AE%A1%E7%90%86/index.xml" title="rss">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/tags/%E6%97%B6%E9%92%9F%E7%AE%A1%E7%90%86/">
 <noscript>
     <style>
         #theme-toggle,
@@ -127,48 +127,32 @@
 <main class="main"> 
 <header class="page-header">
   <h1>
-    嵌入式
+    时钟管理
   </h1>
 </header>
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">Linux 环境下的 CH32 &#43; LibXR 开发环境搭建
+    <h2 class="entry-hint-parent">利用 Vivado 中的 Clocking Wizard 实现动态调整输出时钟的频率和相位以及相关应用
     </h2>
   </header>
   <div class="entry-content">
-    <p></p>
-  </div>
-  <footer class="entry-footer"><span title='2025-11-16 12:00:00 +0800 CST'>November 16, 2025</span>&nbsp;·&nbsp;<span>molqzone</span></footer>
-  <a class="entry-link" aria-label="post link to Linux 环境下的 CH32 &#43; LibXR 开发环境搭建" href="http://localhost:1313/post/ch32-libxr-linux-env/"></a>
-</article>
-
-<article class="post-entry tag-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">STM32H7 HAL 库开发中的 DMA 传输失败问题的解决方案
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>引言 最近我尝试在 STM32H723ZGT6 上使用 STM32CubeMX &#43; CMake &#43; GCC 方案配置 ADC1 的 DMA Circular Mode，发现在我的 STM32CubeMX 的参数配置正确的情况下仍然配置不成功。现象是可以进入 ADC1 对应的 DMA1_Stream0_IRQHandler 中断函数，但是无法进入 HAL_ADC_ConvCpltCallback。经过排查发现系统稳定地在 DMA 中断中报告传输错误（TEIF - Transfer Error Interrupt Flag）。下面是我的错误验证代码：
-void DMA1_Stream0_IRQHandler(void) { /* USER CODE BEGIN DMA1_Stream0_IRQn 0 */ if (__HAL_DMA_GET_FLAG(&amp;hdma_adc1, DMA_FLAG_TEIF0_4)) { log_e(&#34;DMA1 Stream0 transfer error occurred&#34;); // 此处报错 } /* USER CODE END DMA1_Stream0_IRQn 0 */ HAL_DMA_IRQHandler(&amp;hdma_adc1); /* USER CODE BEGIN DMA1_Stream0_IRQn 1 */ /* USER CODE END DMA1_Stream0_IRQn 1 */ } 常规的调试手段，如排查 MPU 配置、管理 D-Cache 一致性，乃至验证外设时钟与模拟电源，均无法解决问题。从这个现象可以看出，这个坑并非来自 ADC 或 DMA 外设本身的功能缺陷，而是两者在特定工作模式下，触发了系统级深层次的硬件冲突。幸运的是，最终我在社区的帮助下解决了这一问题。
+    <p>开发背景 资源连接：Clocking Wizard v6.0 手册 pg065-clk-wiz
+物理硬件平台：Xilinx Artix-7 FPGA A704
+开发工具：VsCode 编译器，Vivado 综合布局，Modelsim 仿真，Verilog 开发语言
+博主为了准备电赛，实现其中一个扫频的功能，便利用 Vivado 中现成的 IP 核实现动态调整锁相环输出的频率和相位。过程中发现现有的资料较少遇到不少问题，便以此写一篇文章为记录，也可以供大家参考。有问题的地方劳烦大家指出，也可以进行交流。
+开发思路 由于我需要从 88MHz-108MHz，并且以 0.1MHz（100K）的频率进行扫频，再阅读手册 15-19 页其相关寄存器，发现 Clocking Wizard 其中有一个公共寄存器控制所有时钟输出频率和相位后，各自时钟还有相关寄存器自行控制。也就是说输入频率，先经过公共的整数&#43;分数倍频（如倍频 8.125），然后经过整数分频后，最后经过每个时钟各自的分频才会输出。
+注意这里特别提到了倍频和分频是整数还是包含分数，分数部分只能为&#34;125&#34;的倍数，倍频只有唯一一次在公共寄存器，普通时钟自身没有倍频只有整数分频，特别的：第一个时钟有分数分频。
+由于我只需要一路时钟输出，所有我选择了第一个时钟。
+所有我们为了输出时钟更加的精准，我们需要计算每个频率的相关参数，但是由于硬件描述语言不便于计算相关参数，并且目标频率是有步进的（虽然是一个范围），由此我决定利用 Python 脚本生成相关参数，再作为 COE 文件导入工程，用 ROM 存放直接读取，这样子更加便捷并且时序上更简单。
+最后利用 Vivado 现有的 Clocking，用 AXI4Lite 协议（握手协议）来读写其内部寄存器，从而达到改变频率和相位的效果。
+（以下截出了部分的寄存器，其它寄存器描述大差不差，英语不好可以翻译一下。）
+这里的 C_BASEADDR 是基准地址，是内部自己控制的，不需要我们控制，我们只需要控制 0x200 这个公共寄存器，由于相位我们单独控制就不需要控制 0x204 了，另外时钟 0 控制频率的寄存器是 0x208，往下翻发现时钟 1 是 0x214，时钟 2 是 0x220……所以我们在写代码的时候可以以时钟 0 的频率寄存器为准，地址可以是 0x208&#43;时钟号×0x00C（就是按 12 递增），同样的道理，相位寄存器也可以这样写。
+写完寄存器后，要记得写重载寄存器 0x25C，Bit[0]位表示要重新加载，Bit[1]在控制重新加载默认（也就是在 Vivado 的 UI 界面配置的初始化状态），还是加载你动态写入的寄存器。加载完成后，也就是 Locked 拉高，内部会重新将 Bit[0]进行复位成 0。
 ...</p>
   </div>
-  <footer class="entry-footer"><span title='2025-07-29 12:00:00 +0800 CST'>July 29, 2025</span>&nbsp;·&nbsp;<span>molqzone</span></footer>
-  <a class="entry-link" aria-label="post link to STM32H7 HAL 库开发中的 DMA 传输失败问题的解决方案" href="http://localhost:1313/post/stm32h7-adc-dma-fix/"></a>
-</article>
-
-<article class="post-entry tag-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">手把手教你移植 CMSIS-DSP 到 STM32CubeMX 生成的 CMake 项目
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>在使用 STM32 系列单片机进行信号处理的过程中，我们往往会选择 ARM 提供的 CMSIS-DSP 库。CMSIS-DSP库涵盖了嵌入式信号处理的大部分常用算法函数，同时针对 Cortex-M 核心做了手工汇编优化，还提供了统一的接口。目前使用 CMSIS-DSP 库有以下几种方案：
-Keil 项目 &#43; 封装好的 CMSIS-DSP 库 CMSIS-Pack STM32CubeMX CMake 项目 &#43; Software Components STM32CubeMX CMake 项目 &#43; CMSIS-DSP 源码 其中后两种方案更现代化，可以适配 STM32 for Visual Studio Code、CLion 等现代开发环境。而现在（2025 年 7 月）通过 Software Components 安装的 DSP Library 版本还停留在 v1.4.0，这是 2013 年 1 月发布的 CMSIS-DSP 版本，距今已超过十年。这十年里 ARM 为 CMSIS-DSP 追加了更多Cortex-M 架构的支持，新增了窗函数等功能模块。而第三种方案直接从 GitHub 上抓取源码，版本最新，功能最全面。但是需要一些 CMake 配置，没有第二种方案直接快捷。而这篇文章的使命就是带你将 GitHub 上的 CMSIS-DSP 源码加入到 STM32CubeMX 生成的 CMake 项目中。（下图是第二种方法通过 Software Components 配置 CMSIS-DSP）
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-07-20 01:12:48 +0800 CST'>July 20, 2025</span>&nbsp;·&nbsp;<span>molqzone</span></footer>
-  <a class="entry-link" aria-label="post link to 手把手教你移植 CMSIS-DSP 到 STM32CubeMX 生成的 CMake 项目" href="http://localhost:1313/post/cmake-style-cmsis-dsp-port/"></a>
+  <footer class="entry-footer"><span title='2025-08-07 22:03:45 +0800 CST'>August 7, 2025</span>&nbsp;·&nbsp;<span>阿呆不呆</span></footer>
+  <a class="entry-link" aria-label="post link to 利用 Vivado 中的 Clocking Wizard 实现动态调整输出时钟的频率和相位以及相关应用" href="http://localhost:1313/post/vivado-clocking-wizard-dynamic-frequency/"></a>
 </article>
     </main>
     
