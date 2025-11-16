@@ -1,6 +1,6 @@
 +++
 date = '2025-07-20T01:12:48+08:00'
-draft = true
+draft = false
 title = '手把手教你移植 CMSIS-DSP 到 STM32CubeMX 生成的 CMake 项目'
 +++
 

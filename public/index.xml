@@ -1,25 +1,7 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
-  <channel>
-    <title>CloudHouse Blog</title>
-    <link>http://localhost:1313/</link>
-    <description>Recent content on CloudHouse Blog</description>
-    <generator>Hugo -- 0.152.2</generator>
-    <language>zh-cn</language>
-    <lastBuildDate>Sun, 20 Jul 2025 01:12:48 +0800</lastBuildDate>
-    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>手把手教你移植 CMSIS-DSP 到 STM32CubeMX 生成的 CMake 项目</title>
-      <link>http://localhost:1313/post/cmake-style-cmsis-dsp-port/</link>
-      <pubDate>Sun, 20 Jul 2025 01:12:48 +0800</pubDate>
-      <guid>http://localhost:1313/post/cmake-style-cmsis-dsp-port/</guid>
-      <description>&lt;p&gt;在使用 STM32 系列单片机进行信号处理的过程中，我们往往会选择 ARM 提供的 CMSIS-DSP 库。CMSIS-DSP库涵盖了嵌入式信号处理的大部分常用算法函数，同时针对 Cortex-M 核心做了手工汇编优化，还提供了统一的接口。目前使用 CMSIS-DSP 库有以下几种方案：&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>CloudHouse Blog</title><link>https://cloudhouse-org.github.io/</link><description>Recent content on CloudHouse Blog</description><generator>Hugo -- 0.152.2</generator><language>zh-cn</language><lastBuildDate>Sun, 20 Jul 2025 01:12:48 +0800</lastBuildDate><atom:link href="https://cloudhouse-org.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>手把手教你移植 CMSIS-DSP 到 STM32CubeMX 生成的 CMake 项目</title><link>https://cloudhouse-org.github.io/post/cmake-style-cmsis-dsp-port/</link><pubDate>Sun, 20 Jul 2025 01:12:48 +0800</pubDate><guid>https://cloudhouse-org.github.io/post/cmake-style-cmsis-dsp-port/</guid><description>&lt;p&gt;在使用 STM32 系列单片机进行信号处理的过程中，我们往往会选择 ARM 提供的 CMSIS-DSP 库。CMSIS-DSP库涵盖了嵌入式信号处理的大部分常用算法函数，同时针对 Cortex-M 核心做了手工汇编优化，还提供了统一的接口。目前使用 CMSIS-DSP 库有以下几种方案：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;Keil 项目 + 封装好的 CMSIS-DSP 库 CMSIS-Pack&lt;/li&gt;
 &lt;li&gt;STM32CubeMX CMake 项目 + Software Components&lt;/li&gt;
 &lt;li&gt;STM32CubeMX CMake 项目 + CMSIS-DSP 源码&lt;/li&gt;
 &lt;/ol&gt;
-&lt;p&gt;其中后两种方案更现代化，可以适配 STM32 for Visual Studio Code、CLion 等现代开发环境。而现在（2025 年 7 月）通过 Software Components 安装的 DSP Library 版本还停留在 v1.4.0，这是 2013 年 1 月发布的 CMSIS-DSP 版本，距今已超过十年。这十年里 ARM 为 CMSIS-DSP 追加了更多Cortex-M 架构的支持，新增了&lt;strong&gt;窗函数&lt;/strong&gt;等功能模块。而第三种方案直接从 GitHub 上抓取源码，版本最新，功能最全面。但是需要一些 CMake 配置，没有第二种方案直接快捷。而这篇文章的使命就是带你将 GitHub 上的 CMSIS-DSP 源码加入到 STM32CubeMX 生成的 CMake 项目中。（下图是第二种方法通过 Software Components 配置 CMSIS-DSP）&lt;/p&gt;</description>
-    </item>
-  </channel>
-</rss>
+&lt;p&gt;其中后两种方案更现代化，可以适配 STM32 for Visual Studio Code、CLion 等现代开发环境。而现在（2025 年 7 月）通过 Software Components 安装的 DSP Library 版本还停留在 v1.4.0，这是 2013 年 1 月发布的 CMSIS-DSP 版本，距今已超过十年。这十年里 ARM 为 CMSIS-DSP 追加了更多Cortex-M 架构的支持，新增了&lt;strong&gt;窗函数&lt;/strong&gt;等功能模块。而第三种方案直接从 GitHub 上抓取源码，版本最新，功能最全面。但是需要一些 CMake 配置，没有第二种方案直接快捷。而这篇文章的使命就是带你将 GitHub 上的 CMSIS-DSP 源码加入到 STM32CubeMX 生成的 CMake 项目中。（下图是第二种方法通过 Software Components 配置 CMSIS-DSP）&lt;/p&gt;</description></item></channel></rss>
