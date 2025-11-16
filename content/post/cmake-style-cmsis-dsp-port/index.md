@@ -2,6 +2,8 @@
 date = '2025-07-20T01:12:48+08:00'
 draft = false
 title = '手把手教你移植 CMSIS-DSP 到 STM32CubeMX 生成的 CMake 项目'
+author = "molqzone"
+tags = ["STM32", "嵌入式"]
 +++
 
 在使用 STM32 系列单片机进行信号处理的过程中，我们往往会选择 ARM 提供的 CMSIS-DSP 库。CMSIS-DSP库涵盖了嵌入式信号处理的大部分常用算法函数，同时针对 Cortex-M 核心做了手工汇编优化，还提供了统一的接口。目前使用 CMSIS-DSP 库有以下几种方案：
