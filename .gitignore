@@ -1,6 +1,4 @@
 # Hugo .gitignore
-
-public/
 resources/_gen/
 .hugo_build.lock
 
