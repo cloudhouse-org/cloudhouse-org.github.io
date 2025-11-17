@@ -9,4 +9,7 @@ Thumbs.db
 
 .env
 node_modules/
+
+# Bing verification file (keep the file but ignore its contents)
+/BingSiteAuth.xml
 EOF
