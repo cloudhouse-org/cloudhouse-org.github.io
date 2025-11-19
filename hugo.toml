@@ -1,10 +1,19 @@
 # hugo.toml
 baseURL = 'https://cloudhouse-org.github.io/'
 languageCode = 'zh-cn'
-title = 'CloudHouse Blog'
+title = '大云屋众创空间'
+
+# Sitemap configuration
+[sitemap]
+  changefreq = 'weekly'
+  filename = 'sitemap.xml'
+  priority = 0.5
 
 [params]
   author = "molqzone"
+
+  # Bing Webmaster Tools verification
+  bingSiteAuth = "BingSiteAuth.xml"
 
   [params.math]
     enable = true
