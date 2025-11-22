@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>手把手教你配置 STM32CubeIDE for VSCode 下基于 OpenOCD 的调试配置 | 大云屋众创空间</title>
+<meta name="keywords" content="STM32, 嵌入式, 入门">
+<meta name="description" content="如果你在使用 STM32CubeIDE for VSCode 插件，可能会发现它默认的烧录工具只完美支持正版 STLink。市面上几十块钱的仿制 STLink 经常出现连接不稳定、烧录失败、甚至无法识别的“玄学”问题。
+为了彻底解决这个问题，我们推荐使用 DAPLink 调试器配合 OpenOCD。这不仅能解决烧录问题，还能让你拥有一套适用于几乎所有 ARM 芯片（不仅限于 STM32）的通用开发环境。本教程将以 STM32CubeIDE for VSCode 生成的项目为基础，教你如何“外挂” OpenOCD 来接管烧录和调试工作。
+
+本教程虽然以 STM32CubeIDE for VSCode 为例，但同样适用于任何基于 OpenOCD 的工具链配置，只需要稍作修改。
+
+
+    
+      
+        Warning
+      
+      
+        本教程涉及 Scoop 的安装。安装 Scoop 前需要检查自己的用户文件夹是否含有中文，如果有中文会导致安装后无法正常使用，且卸载复杂的后果。可以修改默认用户文件夹或重装系统，建议重装系统。">
+<meta name="author" content="molqzone">
+<link rel="canonical" href="http://localhost:1313/post/stm32-vscode-openocd-env/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.343cc480b9ffc8f04ccbe5e968ad674880cab773ec19905e93033065c1e7a804.css" integrity="sha256-NDzEgLn/yPBMy&#43;XpaK1nSIDKt3PsGZBekwMwZcHnqAQ=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/post/stm32-vscode-openocd-env/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+
+<script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    options: {
+      skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="大云屋众创空间 (Alt + H)">大云屋众创空间</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      手把手教你配置 STM32CubeIDE for VSCode 下基于 OpenOCD 的调试配置
+    </h1>
+    <div class="post-meta"><span title='2025-11-22 12:00:00 +0800 CST'>November 22, 2025</span>&nbsp;·&nbsp;<span>molqzone</span>
+
+</div>
+  </header> 
+  <div class="post-content"><p>如果你在使用 STM32CubeIDE for VSCode 插件，可能会发现它默认的烧录工具只完美支持正版 STLink。市面上几十块钱的仿制 STLink 经常出现连接不稳定、烧录失败、甚至无法识别的“玄学”问题。</p>
+<p>为了彻底解决这个问题，我们推荐使用 DAPLink 调试器配合 OpenOCD。这不仅能解决烧录问题，还能让你拥有一套适用于几乎所有 ARM 芯片（不仅限于 STM32）的通用开发环境。本教程将以 STM32CubeIDE for VSCode 生成的项目为基础，教你如何“外挂” OpenOCD 来接管烧录和调试工作。</p>
+<blockquote>
+<p>本教程虽然以 STM32CubeIDE for VSCode 为例，但同样适用于任何基于 OpenOCD 的工具链配置，只需要稍作修改。</p>
+</blockquote>
+
+    <div class="admonition warning">
+      <div class="admonition-header"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480L40 480c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24l0 112c0 13.3 10.7 24 24 24s24-10.7 24-24l0-112c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"/></svg>
+        <span>Warning</span>
+      </div>
+      <div class="admonition-content">
+        <p>本教程涉及 Scoop 的安装。安装 Scoop 前需要检查自己的用户文件夹是否含有中文，如果有中文会<strong>导致安装后无法正常使用，且卸载复杂</strong>的后果。可以修改默认用户文件夹或重装系统，建议重装系统。</p>
+      </div>
+    </div><h2 id="硬件准备">硬件准备<a hidden class="anchor" aria-hidden="true" href="#硬件准备">#</a></h2>
+<h3 id="选购-daplink">选购 DAPLink<a hidden class="anchor" aria-hidden="true" href="#选购-daplink">#</a></h3>
+<p>市场上 5-20 元的 DAPLink 基本就可以满足日常使用需求。可以买一个淘宝九块九的 <strong>PowerWriter 2 Lite</strong>，性价比高。</p>
+
+    <div class="admonition tip">
+      <div class="admonition-header"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M272 384c9.6-31.9 29.5-59.1 49.2-86.2c0 0 0 0 0 0c5.2-7.1 10.4-14.2 15.4-21.4c19.8-28.5 31.4-63 31.4-100.3C368 78.8 289.2 0 192 0S16 78.8 16 176c0 37.3 11.6 71.9 31.4 100.3c5 7.2 10.2 14.3 15.4 21.4c0 0 0 0 0 0c19.8 27.1 39.7 54.4 49.2 86.2l160 0zM192 512c44.2 0 80-35.8 80-80l0-16-160 0 0 16c0 44.2 35.8 80 80 80zM112 176c0 8.8-7.2 16-16 16s-16-7.2-16-16c0-61.9 50.1-112 112-112c8.8 0 16 7.2 16 16s-7.2 16-16 16c-44.2 0-80 35.8-80 80z"/></svg>
+        <span>Tip</span>
+      </div>
+      <div class="admonition-content">
+        <p><strong>Why DAPLink？</strong></p>
+<p><strong>DAPLink</strong> 是 ARM 官方推出的开源调试协议。与 STLink（仅支持 STM32）不同，DAPLink 几乎可以覆盖所有 ARM 内核的设备，通用性更强。</p>
+      </div>
+    </div><h3 id="检查驱动-winusb">检查驱动 (WinUSB)<a hidden class="anchor" aria-hidden="true" href="#检查驱动-winusb">#</a></h3>
+<p>大多数 DAPLink 插上就能用。但为了确保 OpenOCD 能通过 <code>libusb</code> 访问它，建议检查一下：</p>
+<ol>
+<li>插上调试器。</li>
+<li>右键此电脑，在右键菜单选择 <code>管理</code>。打开设备管理器，看是否有 <code>CMSIS-DAP</code> 或 <code>WinUSB</code> 设备。</li>
+</ol>
+<h2 id="安装-openocd">安装 OpenOCD<a hidden class="anchor" aria-hidden="true" href="#安装-openocd">#</a></h2>
+<p>OpenOCD 可以通过 Scoop 安装或者在 GitHub Release 直装（直装后建议添加 OpenOCD 到环境变量）。</p>
+<p>推荐使用 <a href="https://scoop.sh/">Scoop</a> 安装 OpenOCD，方便后续的维护</p>
+<ol>
+<li>在开始菜单搜索 <code>PowerShell</code>，启动 PoweShell</li>
+<li>安装 Scoop</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+</span></span><span style="display:flex;"><span>Invoke-RestMethod -Uri https<span style="color:#960050;background-color:#1e0010">:</span>//get.scoop.sh | Invoke-Expression
+</span></span></code></pre></div><ol start="3">
+<li>安装 OpenOCD</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>scoop install openocd
+</span></span></code></pre></div><ol start="4">
+<li>安装完成后，检查 OpenOCD 是否正确安装</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>openocd --version
+</span></span></code></pre></div><p>若显示版本号说明安装成功。如：</p>
+<pre tabindex="0"><code>Open On-Chip Debugger 0.12.0 (2023-01-14-23:37)
+Licensed under GNU GPL v2
+For bug reports, read
+        http://openocd.org/doc/doxygen/bugs.html
+</code></pre>
+    <div class="admonition tip">
+      <div class="admonition-header"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M272 384c9.6-31.9 29.5-59.1 49.2-86.2c0 0 0 0 0 0c5.2-7.1 10.4-14.2 15.4-21.4c19.8-28.5 31.4-63 31.4-100.3C368 78.8 289.2 0 192 0S16 78.8 16 176c0 37.3 11.6 71.9 31.4 100.3c5 7.2 10.2 14.3 15.4 21.4c0 0 0 0 0 0c19.8 27.1 39.7 54.4 49.2 86.2l160 0zM192 512c44.2 0 80-35.8 80-80l0-16-160 0 0 16c0 44.2 35.8 80 80 80zM112 176c0 8.8-7.2 16-16 16s-16-7.2-16-16c0-61.9 50.1-112 112-112c8.8 0 16 7.2 16 16s-7.2 16-16 16c-44.2 0-80 35.8-80 80z"/></svg>
+        <span>Tip</span>
+      </div>
+      <div class="admonition-content">
+        <p>你的电脑无法直接对芯片说：“把这个程序写进你的 Flash 里”，所以我们需要引入一个程序用来把用户的调试操作转换成芯片能听懂的指令，这个程序在这儿教程中就是 <strong>OpenOCD</strong>。它一边听懂电脑发出的命令（GDB协议），一边控制 USB 调试器发出高低电平（JTAG/SWD协议），像“牵线木偶”一样控制芯片。 它的核心价值就是用一套软件，桥接不同调试器（DAPLink/STLink）与不同芯片，让烧录和调试变得通用。</p>
+      </div>
+    </div><h2 id="配置烧录功能">配置烧录功能<a hidden class="anchor" aria-hidden="true" href="#配置烧录功能">#</a></h2>
+<p>VSCode 本身只是一个编辑器，并不懂烧录，我们需要写一个“任务说明书”告诉它该怎么做。</p>
+<h3 id="创建烧录任务">创建烧录任务<a hidden class="anchor" aria-hidden="true" href="#创建烧录任务">#</a></h3>
+<ol>
+<li>在VSCode中打开你的项目</li>
+<li>按 <code>Ctrl + Shift + P</code>，输入 <code>Tasks: Configure Task</code></li>
+<li>选择 <code>Create tasks.json file from template</code> → <code>Others</code></li>
+<li><strong>完全替换</strong>文件内容如下（注意看注释修改芯片型号）:</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;version&#34;</span>: <span style="color:#e6db74">&#34;2.0.0&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;tasks&#34;</span>: [
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;label&#34;</span>: <span style="color:#e6db74">&#34;Flash Target&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;shell&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;command&#34;</span>: <span style="color:#e6db74">&#34;openocd&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;args&#34;</span>: [
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;-f&#34;</span>, <span style="color:#e6db74">&#34;interface/cmsis-dap.cfg&#34;</span>, <span style="color:#75715e">// 使用 DAPLink
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                <span style="color:#e6db74">&#34;-f&#34;</span>, <span style="color:#e6db74">&#34;target/stm32f1x.cfg&#34;</span>, <span style="color:#75715e">// 根据你的芯片修改！例如 stm32f4x.cfg, stm32h7x.cfg
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                <span style="color:#75715e">// 下面这行代码会自动获取 STM32CubeIDE 插件编译出的 elf 文件路径,如果环境不是基于 STM32CubeIDE for VSCode 则需要将环境变量替换为具体可执行文件位置，具体可以问 AI
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                <span style="color:#e6db74">&#34;-c&#34;</span>, <span style="color:#e6db74">&#34;program ${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1} verify reset exit&#34;</span> 
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;group&#34;</span>: {
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&#34;kind&#34;</span>: <span style="color:#e6db74">&#34;build&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&#34;isDefault&#34;</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>            },
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;presentation&#34;</span>: {
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&#34;echo&#34;</span>: <span style="color:#66d9ef">true</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&#34;reveal&#34;</span>: <span style="color:#e6db74">&#34;always&#34;</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    ]
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="开始烧录">开始烧录<a hidden class="anchor" aria-hidden="true" href="#开始烧录">#</a></h3>
+<p>配置完成后，按 <code>Ctrl + Shift + P</code>，输入 &ldquo;Run Task&rdquo;，选择 &ldquo;Flash Target&rdquo; 即可开始烧录。</p>
+<h3 id="添加一键烧录按钮">添加一键烧录按钮<a hidden class="anchor" aria-hidden="true" href="#添加一键烧录按钮">#</a></h3>
+<p>不想每次按快捷键？装个插件做个按钮。</p>
+<p><code>Ctrl + Shift + X</code>，打开扩展页，搜索 <code>Task Buttons</code> 并安装</p>
+<p><img alt="VSCode Task Buttons 扩展安装页面" loading="lazy" src="vscode-task-buttons-extension.png"></p>
+<p><code>Ctrl + ,</code> 打开设置页，在 <code>Extensions</code> -&gt; <code>VsCodeTaskButtons</code> 找到 <code>Tasks</code>，选择 <code>Edit in settings.json</code></p>
+<p><img alt="VSCode Task Buttons 设置页面配置" loading="lazy" src="vscode-task-buttons-settings.png"></p>
+<p>在 <code>settings.json</code> 追加：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;VsCodeTaskButtons.tasks&#34;</span><span style="color:#960050;background-color:#1e0010">:</span> [
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;label&#34;</span>: <span style="color:#e6db74">&#34;$(play) Flash Target&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;task&#34;</span>: <span style="color:#e6db74">&#34;Flash Target&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;tooltip&#34;</span>: <span style="color:#e6db74">&#34;Flash the ordered MCU&#34;</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    ]<span style="color:#960050;background-color:#1e0010">,</span>
+</span></span></code></pre></div>
+    <div class="admonition tip">
+      <div class="admonition-header"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M272 384c9.6-31.9 29.5-59.1 49.2-86.2c0 0 0 0 0 0c5.2-7.1 10.4-14.2 15.4-21.4c19.8-28.5 31.4-63 31.4-100.3C368 78.8 289.2 0 192 0S16 78.8 16 176c0 37.3 11.6 71.9 31.4 100.3c5 7.2 10.2 14.3 15.4 21.4c0 0 0 0 0 0c19.8 27.1 39.7 54.4 49.2 86.2l160 0zM192 512c44.2 0 80-35.8 80-80l0-16-160 0 0 16c0 44.2 35.8 80 80 80zM112 176c0 8.8-7.2 16-16 16s-16-7.2-16-16c0-61.9 50.1-112 112-112c8.8 0 16 7.2 16 16s-7.2 16-16 16c-44.2 0-80 35.8-80 80z"/></svg>
+        <span>Tip</span>
+      </div>
+      <div class="admonition-content">
+        <p><strong>task.json 本质上是一张“自动化任务说明书”</strong></p>
+<p>VSCode 只懂得编辑文字。你想让它帮你做点“额外的事”，比如烧录程序，但它自己完全不知道“烧录”是什么。</p>
+<p>但是 VSCode 会自己去读 .vscode 文件夹下的 <strong>task.json</strong>。比如我们配置的 task.json 上面详细写着：</p>
+<ol>
+<li><strong>任务名称</strong>：“烧录程序”</li>
+<li><strong>具体步骤</strong>：“请调用电脑里的 openocd 这个工具，并把这些参数（比如调试器类型、芯片型号、程序文件位置）一字不差地传给它。”</li>
+</ol>
+<p>所以，task.json 解决的核心问题是──<strong>在 VSCode 这个图形界面里架起一座桥梁，连接友好的图形界面和底层强大的命令行工具</strong>。</p>
+<p>如果感兴趣，你可以借助 AI 去了解我们配置的 task.json 上的每一个参数究竟告诉 VSCode 怎么正确执行这个任务。</p>
+      </div>
+    </div><h2 id="配置调试功能">配置调试功能<a hidden class="anchor" aria-hidden="true" href="#配置调试功能">#</a></h2>
+<h3 id="安装-everything">安装 Everything<a hidden class="anchor" aria-hidden="true" href="#安装-everything">#</a></h3>
+<p>可以从微软官方商店搜索，或者使用 WinGet 安装。</p>
+<blockquote>
+<p><strong>使用 WinGet 安装 Everything</strong></p>
+<p>按刚刚的步骤打开 PowerShell，安装 Everything</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>winget install voidtools.Everything
+</span></span></code></pre></div></blockquote>
+<h3 id="确认-arm-none-eabi-gdb-位置">确认 arm-none-eabi-gdb 位置<a hidden class="anchor" aria-hidden="true" href="#确认-arm-none-eabi-gdb-位置">#</a></h3>
+<p>我们需要找到调试器（GDB）的位置：</p>
+<ol>
+<li>使用 Everything 搜索 <code>arm-none-eabi-gdb.exe</code>，找到路径包含 <code>gnu-tools-for-stm32</code> 的那个结果</li>
+<li>通常路径类似：<code>AppData/Local/stm32cube/bundles/gnu-tools-for-stm32/13.3.1+st.9/bin/arm-none-eabi-gdb.exe</code></li>
+<li>在目标文件右键，在右键菜单中选择 <code>复制为路径</code>，将路径保存好</li>
+</ol>
+<p><img alt="Everything 搜索 arm-none-eabi-gdb.exe 结果" loading="lazy" src="everything-search-gdb.png"></p>
+
+    <div class="admonition tip">
+      <div class="admonition-header"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M272 384c9.6-31.9 29.5-59.1 49.2-86.2c0 0 0 0 0 0c5.2-7.1 10.4-14.2 15.4-21.4c19.8-28.5 31.4-63 31.4-100.3C368 78.8 289.2 0 192 0S16 78.8 16 176c0 37.3 11.6 71.9 31.4 100.3c5 7.2 10.2 14.3 15.4 21.4c0 0 0 0 0 0c19.8 27.1 39.7 54.4 49.2 86.2l160 0zM192 512c44.2 0 80-35.8 80-80l0-16-160 0 0 16c0 44.2 35.8 80 80 80zM112 176c0 8.8-7.2 16-16 16s-16-7.2-16-16c0-61.9 50.1-112 112-112c8.8 0 16 7.2 16 16s-7.2 16-16 16c-44.2 0-80 35.8-80 80z"/></svg>
+        <span>Tip</span>
+      </div>
+      <div class="admonition-content">
+        <p><strong>什么是 GDB？</strong></p>
+<p>GDB 是连接你的源代码和芯片实际运行的&quot;桥梁调试器&quot;，它负责和程序对话。它解决了在嵌入式开发中&quot;代码如何真正在芯片上执行&quot;的黑盒问题。</p>
+<p>当程序在芯片上运行时，GDB 允许你&quot;暂停时间&quot;——查看变量当前值、分析函数调用关系、跟踪程序执行流程。没有 GDB，调试就像蒙着眼睛找错误；有了 GDB，你可以精确观察程序每一步的行为。</p>
+<p>简单说：<strong>OpenOCD 让电脑能&quot;接触&quot;到芯片，而 GDB 让开发者能&quot;理解&quot;芯片上正在发生什么。</strong></p>
+      </div>
+    </div><h3 id="安装-cortex-debug-扩展">安装 Cortex Debug 扩展<a hidden class="anchor" aria-hidden="true" href="#安装-cortex-debug-扩展">#</a></h3>
+<p><code>Ctrl + Shift + X</code>，打开扩展页，搜索 <code>Cortex Debug</code> 并安装</p>
+<p><img alt="VSCode Cortex Debug 扩展安装" loading="lazy" src="vscode-cortex-debug-extension.png"></p>
+<p><code>Ctrl + Shift + D</code>，打开运行或调试页，点击 <code>create a launch.json file</code>，这会在你的项目根目录下的 <code>.vscode</code> 文件夹新建一个 <code>launch.json</code>。你也可以自己手动创建。</p>
+<p><img alt="VSCode 创建 launch.json 文件界面" loading="lazy" src="vscode-create-launch-json.png"></p>
+<p>点击 <code>create a launch.json file</code> 后，在上方选项选择第一项，然后下拉框选择 <code>Cortex Debug: OpenOCD</code>。或者你也可以打开 <code>launch.json</code> 文件，点击右下角的 <code>Add Configuration...</code>，同样选择 <code>Cortex Debug: OpenOCD</code>。</p>
+<p><img alt="VSCode 添加 Cortex Debug 配置选项" loading="lazy" src="vscode-add-cortex-debug-config.png"></p>
+<p>补全配置，添加 GDB 路径：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Use IntelliSense to learn about possible attributes.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// Hover to view descriptions of existing attributes.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#f92672">&#34;version&#34;</span>: <span style="color:#e6db74">&#34;0.2.0&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;configurations&#34;</span>: [
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;cwd&#34;</span>: <span style="color:#e6db74">&#34;${workspaceRoot}&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;executable&#34;</span>: <span style="color:#e6db74">&#34;${command:st-stm32-ide-debug-launch.get-projects-binary-from-context1}&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;Debug with OpenOCD&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;request&#34;</span>: <span style="color:#e6db74">&#34;launch&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;cortex-debug&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;servertype&#34;</span>: <span style="color:#e6db74">&#34;openocd&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;configFiles&#34;</span>: [
+</span></span><span style="display:flex;"><span>            	<span style="color:#e6db74">&#34;interface/cmsis-dap.cfg&#34;</span>,
+</span></span><span style="display:flex;"><span>            	<span style="color:#e6db74">&#34;target/stm32f1x.cfg&#34;</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;searchDir&#34;</span>: [],
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;runToEntryPoint&#34;</span>: <span style="color:#e6db74">&#34;main&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;showDevDebugOutput&#34;</span>: <span style="color:#e6db74">&#34;none&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;gdbPath&#34;</span>: <span style="color:#e6db74">&#34;.../AppData/Local/stm32cube/bundles/gnu-tools-for-stm32/13.3.1+st.9/bin/arm-none-eabi-gdb&#34;</span> <span style="color:#75715e">// 填入刚刚找到的路径
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    ]
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>保存配置后，运行与调试页应该会出现 <code>Debug with OpenOCD</code> 选项，点击运行三角形即可开始调试。</p>
+<p><img alt="VSCode 调试界面显示 Debug with OpenOCD 选项" loading="lazy" src="vscode-debug-interface.png"></p>
+
+    <div class="admonition tip">
+      <div class="admonition-header"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M272 384c9.6-31.9 29.5-59.1 49.2-86.2c0 0 0 0 0 0c5.2-7.1 10.4-14.2 15.4-21.4c19.8-28.5 31.4-63 31.4-100.3C368 78.8 289.2 0 192 0S16 78.8 16 176c0 37.3 11.6 71.9 31.4 100.3c5 7.2 10.2 14.3 15.4 21.4c0 0 0 0 0 0c19.8 27.1 39.7 54.4 49.2 86.2l160 0zM192 512c44.2 0 80-35.8 80-80l0-16-160 0 0 16c0 44.2 35.8 80 80 80zM112 176c0 8.8-7.2 16-16 16s-16-7.2-16-16c0-61.9 50.1-112 112-112c8.8 0 16 7.2 16 16s-7.2 16-16 16c-44.2 0-80 35.8-80 80z"/></svg>
+        <span>Tip</span>
+      </div>
+      <div class="admonition-content">
+        <p><strong>什么是 launch.json？</strong></p>
+<p>如果说 <code>task.json</code>是&quot;烧录说明书&quot;，那么 <code>launch.json</code>就是&quot;调试说明书&quot;。它告诉 VSCode 如何启动调试会话：设置断点、查看变量、单步执行等。</p>
+      </div>
+    </div><h2 id="常见问题">常见问题<a hidden class="anchor" aria-hidden="true" href="#常见问题">#</a></h2>
+<h3 id="报错-target-not-found">报错 <code>target not found</code><a hidden class="anchor" aria-hidden="true" href="#报错-target-not-found">#</a></h3>
+<ul>
+<li>检查连线（SWDIO, SWCLK, GND, 3.3V）是否接好。</li>
+<li>检查 target/stm32f1x.cfg 是否选对了系列（F1, F4, H7 配置文件不同）。</li>
+</ul>
+<h3 id="gdb-报错-no-such-file-or-directory">GDB 报错 <code>No such file or directory</code><a hidden class="anchor" aria-hidden="true" href="#gdb-报错-no-such-file-or-directory">#</a></h3>
+<ul>
+<li>检查 <code>launch.json</code> 里的 <code>gdbPath</code> 路径是否写错，尤其是斜杠的方向。</li>
+</ul>
+<h2 id="参考教程">参考教程<a hidden class="anchor" aria-hidden="true" href="#参考教程">#</a></h2>
+<h3 id="视频教程">视频教程<a hidden class="anchor" aria-hidden="true" href="#视频教程">#</a></h3>
+<ul>
+<li><a href="https://www.bilibili.com/video/BV1bnnZz2ESg">[STM32 + VS Code] 用 DAPLink + OpenOCD 调试 - XRobot 官方教程 0.2 节</a></li>
+<li><a href="https://www.bilibili.com/video/BV1X4XAYiEkV">【Windows】VSCode开发STM32，但是使用cmake+clangd+ninja+arm-gcc，全套开源工具链，编译烧录调试无压力。</a></li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:1313/tags/stm32/">STM32</a></li>
+      <li><a href="http://localhost:1313/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a></li>
+      <li><a href="http://localhost:1313/tags/%E5%85%A5%E9%97%A8/">入门</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://localhost:1313/">大云屋众创空间</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>
