@@ -12,6 +12,12 @@ title = '大云屋众创空间'
 [params]
   author = "molqzone"
 
+  # Site description for SEO
+  description = "欢迎来到大云屋众创空间，这里是广东工业大学大学城校区工学一号楼的一间小实验室，也是一群电子爱好者的聚集地！本博客致力于技术知识共享，在互联网的一处角落留下一些属于我们的价值。"
+
+  # Site keywords for SEO
+  keywords = ["电子设计", "嵌入式开发", "STM32", "FPGA", "PCB", "Vivado", "CMake", "技术教程", "工程师学习"]
+
   # Bing Webmaster Tools verification
   bingSiteAuth = "BingSiteAuth.xml"
 
