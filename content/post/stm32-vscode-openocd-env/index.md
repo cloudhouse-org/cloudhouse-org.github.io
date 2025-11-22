@@ -127,11 +127,11 @@ VSCode 本身只是一个编辑器，并不懂烧录，我们需要写一个“�
 
 `Ctrl + Shift + X`，打开扩展页，搜索 `Task Buttons` 并安装
 
-![VSCode Task Buttons 扩展安装页面](vscode-task-buttons-extension.png)
+![VSCode Task Buttons 扩展安装页面](task-buttons-ext.png)
 
 `Ctrl + ,` 打开设置页，在 `Extensions` -> `VsCodeTaskButtons` 找到 `Tasks`，选择 `Edit in settings.json`
 
-![VSCode Task Buttons 设置页面配置](vscode-task-buttons-settings.png)
+![VSCode Task Buttons 设置页面配置](task-button-settings.png)
 
 在 `settings.json` 追加：
 
@@ -181,7 +181,7 @@ VSCode 本身只是一个编辑器，并不懂烧录，我们需要写一个“�
 2. 通常路径类似：`AppData/Local/stm32cube/bundles/gnu-tools-for-stm32/13.3.1+st.9/bin/arm-none-eabi-gdb.exe`
 3. 在目标文件右键，在右键菜单中选择 `复制为路径`，将路径保存好
 
-![Everything 搜索 arm-none-eabi-gdb.exe 结果](everything-search-gdb.png)
+![Everything 搜索 arm-none-eabi-gdb.exe 结果](everything.png)
 
 > [!tip]
 >
@@ -197,15 +197,15 @@ VSCode 本身只是一个编辑器，并不懂烧录，我们需要写一个“�
 
 `Ctrl + Shift + X`，打开扩展页，搜索 `Cortex Debug` 并安装
 
-![VSCode Cortex Debug 扩展安装](vscode-cortex-debug-extension.png)
+![VSCode Cortex Debug 扩展安装](cortex-debug-ext.png)
 
 `Ctrl + Shift + D`，打开运行或调试页，点击 `create a launch.json file`，这会在你的项目根目录下的 `.vscode` 文件夹新建一个 `launch.json`。你也可以自己手动创建。
 
-![VSCode 创建 launch.json 文件界面](vscode-create-launch-json.png)
+![VSCode 创建 launch.json 文件界面](run-and-debug-create.png)
 
 点击 `create a launch.json file` 后，在上方选项选择第一项，然后下拉框选择 `Cortex Debug: OpenOCD`。或者你也可以打开 `launch.json` 文件，点击右下角的 `Add Configuration...`，同样选择 `Cortex Debug: OpenOCD`。
 
-![VSCode 添加 Cortex Debug 配置选项](vscode-add-cortex-debug-config.png)
+![VSCode 添加 Cortex Debug 配置选项](add-configuration.png)
 
 补全配置，添加 GDB 路径：
 
@@ -239,7 +239,7 @@ VSCode 本身只是一个编辑器，并不懂烧录，我们需要写一个“�
 
 保存配置后，运行与调试页应该会出现 `Debug with OpenOCD` 选项，点击运行三角形即可开始调试。
 
-![VSCode 调试界面显示 Debug with OpenOCD 选项](vscode-debug-interface.png)
+![VSCode 调试界面显示 Debug with OpenOCD 选项](run-debug.png)
 
 > [!tip]
 >
